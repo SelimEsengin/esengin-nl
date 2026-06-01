@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Esengin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Satisfy&family=Raleway:wght@300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: #f7f5f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .bg { position: fixed; inset: 0; z-index: 0; }
+    .bg-grid { position: fixed; inset: 0; }
+
+    .group {
+      z-index: 0;
+      position: fixed;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      width: 260px;
+    }
+
+    .circle {
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin: -20px;
+    }
+
+    .male    { background: #8a8a84; }
+    .female  { background: #d8d5d0; }
+    .incoming {
+      background: transparent;
+      border: 3px dashed #b0ada8;
+      animation: pulse-incoming 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-incoming {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    /* Anchored to corners, partially off-screen */
+    .group1 { top: -80px;  left: -80px;  animation: fg1 16s ease-in-out infinite; }
+    .group2 { top: -80px;  right: -80px; animation: fg2 14s ease-in-out infinite; }
+    .group3 { bottom: -80px; left: -80px;  animation: fg3 18s ease-in-out infinite; }
+    .group4 { bottom: -80px; right: -80px; animation: fg4 15s ease-in-out infinite; }
+
+    @keyframes fg1 { 0%,100%{transform:translate(0,0)}   40%{transform:translate(15px,12px)}  70%{transform:translate(-5px,18px)} }
+    @keyframes fg2 { 0%,100%{transform:translate(0,0)}   35%{transform:translate(-15px,12px)} 70%{transform:translate(10px,-8px)} }
+    @keyframes fg3 { 0%,100%{transform:translate(0,0)}   50%{transform:translate(15px,-12px)} 80%{transform:translate(-10px,8px)} }
+    @keyframes fg4 { 0%,100%{transform:translate(0,0)}   45%{transform:translate(-12px,-15px)} 75%{transform:translate(10px,10px)} }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      padding: 60px 40px;
+      text-align: center;
+    }
+
+    .logo {
+      font-family: 'Satisfy', cursive;
+      font-size: clamp(64px, 14vw, 88px);
+      color: #1a1a1a;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 1s ease forwards 0.3s;
+      cursor: default;
+      user-select: none;
+    }
+
+    .divider {
+      width: 0; height: 1px;
+      background: #c0bdb8;
+      animation: expandLine 0.8s ease forwards 1s;
+    }
+
+    .datetime {
+      font-family: 'Raleway', sans-serif;
+      font-size: 11px; font-weight: 300;
+      letter-spacing: 0.12em; color: #bbb;
+      opacity: 0;
+      animation: fadeIn 0.6s ease forwards 1.4s;
+    }
+
+    .confetti-piece {
+      position: fixed; border-radius: 2px;
+      pointer-events: none; z-index: 999;
+      animation: confettiFall linear forwards;
+    }
+    @keyframes confettiFall {
+      0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+    @keyframes expandLine { to { width: 48px; } }
+    @keyframes fadeIn { to { opacity: 1; } }
+  </style>
+</head>
+<body>
+
+  <div class="bg">
+    <svg class="bg-grid" xmlns="http://www.w3.org/2000/svg">
+      <line x1="0" y1="25%" x2="100%" y2="25%" stroke="#2c2c2c" stroke-width="0.5" opacity="0.05"/>
+      <line x1="0" y1="50%" x2="100%" y2="50%" stroke="#2c2c2c" stroke-width="0.5" opacity="0.05"/>
+      <line x1="0" y1="75%" x2="100%" y2="75%" stroke="#2c2c2c" stroke-width="0.5" opacity="0.05"/>
+      <line x1="25%" y1="0" x2="25%" y2="100%" stroke="#2c2c2c" stroke-width="0.5" opacity="0.05"/>
+      <line x1="50%" y1="0" x2="50%" y2="100%" stroke="#2c2c2c" stroke-width="0.5" opacity="0.05"/>
+      <line x1="75%" y1="0" x2="75%" y2="100%" stroke="#2c2c2c" stroke-width="0.5" opacity="0.05"/>
+    </svg>
+
+  </div>
+
+    <!-- Group 1 top-left: female + male + incoming boy -->
+    <div class="group group1">
+      <div class="circle female"   style="width:200px;height:200px;"></div>
+      <div class="circle male"     style="width:220px;height:220px;"></div>
+      <div class="circle incoming" style="width:120px;height:120px;"></div>
+    </div>
+
+    <!-- Group 2 top-right: female + male -->
+    <div class="group group2">
+      <div class="circle female" style="width:200px;height:200px;"></div>
+      <div class="circle male"   style="width:220px;height:220px;"></div>
+    </div>
+
+    <!-- Group 3 bottom-left: female + male + boy + girl -->
+    <div class="group group3">
+      <div class="circle female" style="width:200px;height:200px;"></div>
+      <div class="circle male"   style="width:220px;height:220px;"></div>
+      <div class="circle male"   style="width:120px;height:120px;"></div>
+      <div class="circle female" style="width:110px;height:110px;"></div>
+    </div>
+
+    <!-- Group 4 bottom-right: female + male + 2 boys + girl -->
+    <div class="group group4">
+      <div class="circle female" style="width:200px;height:200px;"></div>
+      <div class="circle male"   style="width:220px;height:220px;"></div>
+      <div class="circle male"   style="width:120px;height:120px;"></div>
+      <div class="circle male"   style="width:120px;height:120px;"></div>
+      <div class="circle female" style="width:110px;height:110px;"></div>
+    </div>
+
+  <div class="container">
+    <div class="logo" id="logo">Esengin</div>
+    <div class="divider"></div>
+    <div class="datetime" id="datetime"></div>
+  </div>
+
+  <script>
+    function updateTime() {
+      const now = new Date();
+      const date = now.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+      const time = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('datetime').textContent = date + ' · ' + time;
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+
+    const logo = document.getElementById('logo');
+    let taps = 0, tapTimer;
+    logo.addEventListener('click', () => {
+      taps++;
+      clearTimeout(tapTimer);
+      tapTimer = setTimeout(() => { taps = 0; }, 600);
+      if (taps >= 3) { taps = 0; launchConfetti(); }
+    });
+
+    const colors = ['#f87171','#fb923c','#facc15','#4ade80','#60a5fa','#c084fc','#f472b6','#34d399'];
+    function launchConfetti() {
+      for (let i = 0; i < 80; i++) {
+        setTimeout(() => {
+          const p = document.createElement('div');
+          p.classList.add('confetti-piece');
+          p.style.left = Math.random() * 100 + 'vw';
+          p.style.top = '-10px';
+          p.style.background = colors[Math.floor(Math.random() * colors.length)];
+          p.style.width = (6 + Math.random() * 6) + 'px';
+          p.style.height = (6 + Math.random() * 6) + 'px';
+          p.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+          p.style.animationDelay = (Math.random() * 0.5) + 's';
+          document.body.appendChild(p);
+          setTimeout(() => p.remove(), 4000);
+        }, i * 15);
+      }
+    }
+  </script>
+
+</body>
+</html>
