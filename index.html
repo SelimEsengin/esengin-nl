@@ -199,6 +199,114 @@
     @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
     @keyframes expandLine { to { width: 48px; } }
     @keyframes fadeIn { to { opacity: 1; } }
+
+    /* Family Tree */
+    .tree-overlay {
+      position: fixed; inset: 0;
+      background: rgba(247, 245, 240, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .tree-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .tree-title {
+      font-family: 'Satisfy', cursive;
+      font-size: 32px;
+      color: #1a1a1a;
+      margin-bottom: 48px;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 0.4s ease 0.2s, transform 0.4s ease 0.2s;
+    }
+    .tree-overlay.open .tree-title {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .tree {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+    .tree-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 60px;
+    }
+    .tree-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .tree-overlay.open .tree-node { opacity: 1; transform: translateY(0); }
+    .tree-overlay.open .tree-node:nth-child(1) { transition-delay: 0.3s; }
+    .tree-overlay.open .tree-node:nth-child(2) { transition-delay: 0.4s; }
+    .tree-overlay.open .tree-node:nth-child(3) { transition-delay: 0.5s; }
+    .tree-overlay.open .tree-node:nth-child(4) { transition-delay: 0.6s; }
+
+    .tree-couple {
+      display: flex;
+      align-items: flex-end;
+      gap: -8px;
+    }
+    .tree-couple .tree-circle { margin: 0 -6px; }
+
+    .tree-circle {
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .tree-label {
+      font-family: 'Raleway', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      color: #aaa;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    /* Connector lines */
+    .tree-connector {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      opacity: 0;
+      transition: opacity 0.4s ease 0.5s;
+    }
+    .tree-overlay.open .tree-connector { opacity: 1; }
+
+    .tree-connector svg {
+      overflow: visible;
+    }
+
+    .tree-hint {
+      font-family: 'Raleway', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      color: #ccc;
+      text-transform: uppercase;
+      margin-top: 48px;
+      opacity: 0;
+      transition: opacity 0.4s ease 0.8s;
+    }
+    .tree-overlay.open .tree-hint { opacity: 1; }
   </style>
 </head>
 <body>
@@ -324,7 +432,23 @@
       clearTimeout(tapTimer);
       tapTimer = setTimeout(() => { taps = 0; }, 600);
       if (taps >= 3) { taps = 0; launchConfetti(); }
+      else if (taps === 2) { openTree(); }
     });
+
+    function openTree() {
+      setTimeout(() => {
+        const svg = document.getElementById('tree-svg');
+        if (svg) svg.style.opacity = '1';
+      }, 100);
+      collapseAll();
+      document.getElementById('tree-overlay').classList.add('open');
+    }
+
+    function closeTree() {
+      document.getElementById('tree-overlay').classList.remove('open');
+      const svg = document.getElementById('tree-svg');
+      if (svg) svg.style.opacity = '0';
+    }
 
     const colors = ['#f87171','#fb923c','#facc15','#4ade80','#60a5fa','#c084fc','#f472b6','#34d399'];
     function launchConfetti() {
@@ -346,5 +470,82 @@
     }
   </script>
 
+
+  <!-- Family Tree Overlay -->
+  <div class="tree-overlay" id="tree-overlay" onclick="closeTree()">
+    <div class="tree-title">The Esengin Family</div>
+
+    <svg width="680" height="420" viewBox="0 0 680 420" style="overflow:visible; opacity:0; transition: opacity 0.4s ease 0.3s;" id="tree-svg">
+
+      <!-- ── FAMILY TWO (parents) centered at x=340 ── -->
+      <!-- Female circle -->
+      <circle cx="316" cy="50" r="35" fill="#d4938a"/>
+      <!-- Male circle -->
+      <circle cx="352" cy="45" r="40" fill="#1e3a5f"/>
+      <text x="334" y="105" text-anchor="middle" font-family="Raleway,sans-serif" font-size="10" letter-spacing="2" fill="#aaa" text-transform="uppercase">FAMILY TWO</text>
+
+      <!-- Vertical down from F2 -->
+      <line x1="334" y1="110" x2="334" y2="145" stroke="#ccc" stroke-width="1"/>
+      <!-- Horizontal across to 3 children -->
+      <line x1="120" y1="145" x2="550" y2="145" stroke="#ccc" stroke-width="1"/>
+      <!-- Verticals down to each child family -->
+      <line x1="120" y1="145" x2="120" y2="175" stroke="#ccc" stroke-width="1"/>
+      <line x1="334" y1="145" x2="334" y2="175" stroke="#ccc" stroke-width="1"/>
+      <line x1="550" y1="145" x2="550" y2="175" stroke="#ccc" stroke-width="1"/>
+
+      <!-- ── FAMILY ONE (left, x=120) ── -->
+      <circle cx="96"  cy="210" r="30" fill="#d4938a"/>
+      <circle cx="128" cy="205" r="35" fill="#1e3a5f"/>
+      <text x="112" y="258" text-anchor="middle" font-family="Raleway,sans-serif" font-size="10" letter-spacing="2" fill="#aaa">FAMILY ONE</text>
+      <!-- Vertical to children -->
+      <line x1="112" y1="263" x2="112" y2="285" stroke="#ccc" stroke-width="1"/>
+      <!-- Incoming boy (dashed circle) -->
+      <circle cx="112" cy="310" r="22" fill="none" stroke="#b0ada8" stroke-width="2" stroke-dasharray="5,3">
+        <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
+      </circle>
+      <text x="112" y="348" text-anchor="middle" font-family="Raleway,sans-serif" font-size="9" letter-spacing="1.5" fill="#ccc">incoming</text>
+
+      <!-- ── FAMILY THREE (center, x=334) ── -->
+      <circle cx="310" cy="210" r="30" fill="#d4938a"/>
+      <circle cx="342" cy="205" r="35" fill="#1e3a5f"/>
+      <text x="326" y="258" text-anchor="middle" font-family="Raleway,sans-serif" font-size="10" letter-spacing="2" fill="#aaa">FAMILY THREE</text>
+      <!-- Vertical to children -->
+      <line x1="326" y1="263" x2="326" y2="285" stroke="#ccc" stroke-width="1"/>
+      <!-- Horizontal to 2 children -->
+      <line x1="294" y1="285" x2="358" y2="285" stroke="#ccc" stroke-width="1"/>
+      <line x1="294" y1="285" x2="294" y2="300" stroke="#ccc" stroke-width="1"/>
+      <line x1="358" y1="285" x2="358" y2="300" stroke="#ccc" stroke-width="1"/>
+      <!-- Boy -->
+      <circle cx="294" cy="322" r="20" fill="#6b9fd4"/>
+      <text x="294" y="356" text-anchor="middle" font-family="Raleway,sans-serif" font-size="9" letter-spacing="1.5" fill="#ccc">son</text>
+      <!-- Girl -->
+      <circle cx="358" cy="322" r="18" fill="#f0c4bc"/>
+      <text x="358" y="356" text-anchor="middle" font-family="Raleway,sans-serif" font-size="9" letter-spacing="1.5" fill="#ccc">daughter</text>
+
+      <!-- ── FAMILY FOUR (right, x=550) ── -->
+      <circle cx="526" cy="210" r="30" fill="#d4938a"/>
+      <circle cx="558" cy="205" r="35" fill="#1e3a5f"/>
+      <text x="542" y="258" text-anchor="middle" font-family="Raleway,sans-serif" font-size="10" letter-spacing="2" fill="#aaa">FAMILY FOUR</text>
+      <!-- Vertical to children -->
+      <line x1="542" y1="263" x2="542" y2="285" stroke="#ccc" stroke-width="1"/>
+      <!-- Horizontal to 3 children -->
+      <line x1="490" y1="285" x2="594" y2="285" stroke="#ccc" stroke-width="1"/>
+      <line x1="490" y1="285" x2="490" y2="300" stroke="#ccc" stroke-width="1"/>
+      <line x1="542" y1="285" x2="542" y2="300" stroke="#ccc" stroke-width="1"/>
+      <line x1="594" y1="285" x2="594" y2="300" stroke="#ccc" stroke-width="1"/>
+      <!-- Boy 1 -->
+      <circle cx="490" cy="322" r="20" fill="#6b9fd4"/>
+      <text x="490" y="356" text-anchor="middle" font-family="Raleway,sans-serif" font-size="9" letter-spacing="1.5" fill="#ccc">son</text>
+      <!-- Boy 2 -->
+      <circle cx="542" cy="322" r="20" fill="#6b9fd4"/>
+      <text x="542" y="356" text-anchor="middle" font-family="Raleway,sans-serif" font-size="9" letter-spacing="1.5" fill="#ccc">son</text>
+      <!-- Girl -->
+      <circle cx="594" cy="322" r="18" fill="#f0c4bc"/>
+      <text x="594" y="356" text-anchor="middle" font-family="Raleway,sans-serif" font-size="9" letter-spacing="1.5" fill="#ccc">daughter</text>
+
+    </svg>
+
+    <div class="tree-hint" style="margin-top:24px;">tap to close</div>
+  </div>
 </body>
 </html>
