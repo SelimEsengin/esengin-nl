@@ -6,7 +6,7 @@
   <title>Esengin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Satisfy&family=Raleway:wght@300&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Satisfy&family=Raleway:wght@300;400&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -20,28 +20,53 @@
     }
 
     .bg { position: fixed; inset: 0; z-index: 0; }
-    .bg-grid { position: fixed; inset: 0; }
+    .bg-grid { position: absolute; inset: 0; }
 
     .group {
-      z-index: 0;
       position: fixed;
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       width: 260px;
+      cursor: pointer;
+      z-index: 2;
+      transition: top 0.7s cubic-bezier(0.4,0,0.2,1),
+                  left 0.7s cubic-bezier(0.4,0,0.2,1),
+                  right 0.7s cubic-bezier(0.4,0,0.2,1),
+                  bottom 0.7s cubic-bezier(0.4,0,0.2,1),
+                  transform 0.7s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .adults {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .children {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      width: 100%;
+      margin-top: -10px;
     }
 
     .circle {
       border-radius: 50%;
       flex-shrink: 0;
-      margin: -20px;
+      margin: 0 -10px;
+      transition: background 0.5s ease, border-color 0.5s ease;
     }
 
-    .male    { background: #8a8a84; }
-    .female  { background: #d8d5d0; }
+    /* Default grey colors */
+    .male   { background: #8a8a84; }
+    .female { background: #d8d5d0; }
+    .child-male   { background: #8a8a84; }
+    .child-female { background: #d8d5d0; }
+
     .incoming {
-      background: transparent;
+      background: transparent !important;
       border: 3px dashed #b0ada8;
       animation: pulse-incoming 2s ease-in-out infinite;
     }
@@ -51,17 +76,76 @@
       50%       { opacity: 0.3; }
     }
 
-    /* Anchored to corners, partially off-screen */
-    .group1 { top: -80px;  left: -80px;  animation: fg1 16s ease-in-out infinite; }
-    .group2 { top: -80px;  right: -80px; animation: fg2 14s ease-in-out infinite; }
-    .group3 { bottom: -80px; left: -80px;  animation: fg3 18s ease-in-out infinite; }
-    .group4 { bottom: -80px; right: -80px; animation: fg4 15s ease-in-out infinite; }
+    /* Expanded color overrides */
+    .group.expanded .male         { background: #1e3a5f; }
+    .group.expanded .female       { background: #d4938a; }
+    .group.expanded .child-male   { background: #6b9fd4; }
+    .group.expanded .child-female { background: #f0c4bc; }
+    .group.expanded .incoming     { border-color: #6b9fd4; }
+
+    /* Corner positions */
+    .group1 { top: -80px;    left: -80px;   animation: fg1 16s ease-in-out infinite; }
+    .group2 { top: -80px;    right: -80px;  animation: fg2 14s ease-in-out infinite; }
+    .group3 { bottom: -80px; left: -80px;   animation: fg3 18s ease-in-out infinite; }
+    .group4 { bottom: -80px; right: -80px;  animation: fg4 15s ease-in-out infinite; }
 
     @keyframes fg1 { 0%,100%{transform:translate(0,0)}   40%{transform:translate(15px,12px)}  70%{transform:translate(-5px,18px)} }
     @keyframes fg2 { 0%,100%{transform:translate(0,0)}   35%{transform:translate(-15px,12px)} 70%{transform:translate(10px,-8px)} }
     @keyframes fg3 { 0%,100%{transform:translate(0,0)}   50%{transform:translate(15px,-12px)} 80%{transform:translate(-10px,8px)} }
     @keyframes fg4 { 0%,100%{transform:translate(0,0)}   45%{transform:translate(-12px,-15px)} 75%{transform:translate(10px,10px)} }
 
+    /* Expanded state */
+    .group.expanded {
+      top: 50% !important;
+      left: 50% !important;
+      right: auto !important;
+      bottom: auto !important;
+      transform: translate(-50%, -50%) !important;
+      animation: none !important;
+      width: 320px;
+      z-index: 10;
+    }
+
+    .group.expanded .circle { margin: 0 -6px; }
+
+    /* Overlay */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(247, 245, 240, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 9;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .overlay.active { opacity: 1; pointer-events: all; }
+
+    /* Info */
+    .group-info {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease 0.4s;
+      text-align: center;
+      margin-top: 16px;
+    }
+    .group.expanded .group-info { opacity: 1; pointer-events: all; }
+
+    .group-info h3 {
+      font-family: 'Satisfy', cursive;
+      font-size: 28px;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+    }
+    .group-info p {
+      font-family: 'Raleway', sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: 0.18em;
+      color: #aaa;
+      text-transform: uppercase;
+    }
+
+    /* Main content */
     .container {
       position: relative;
       z-index: 1;
@@ -71,6 +155,7 @@
       gap: 24px;
       padding: 60px 40px;
       text-align: center;
+      pointer-events: none;
     }
 
     .logo {
@@ -83,6 +168,7 @@
       animation: fadeUp 1s ease forwards 0.3s;
       cursor: default;
       user-select: none;
+      pointer-events: all;
     }
 
     .divider {
@@ -125,38 +211,69 @@
       <line x1="50%" y1="0" x2="50%" y2="100%" stroke="#2c2c2c" stroke-width="0.5" opacity="0.05"/>
       <line x1="75%" y1="0" x2="75%" y2="100%" stroke="#2c2c2c" stroke-width="0.5" opacity="0.05"/>
     </svg>
-
   </div>
 
-    <!-- Group 1 top-left: female + male + incoming boy -->
-    <div class="group group1">
-      <div class="circle female"   style="width:200px;height:200px;"></div>
-      <div class="circle male"     style="width:220px;height:220px;"></div>
+  <div class="overlay" id="overlay" onclick="collapseAll()"></div>
+
+  <!-- Family 1: female + male + incoming -->
+  <div class="group group1" id="g1" onclick="toggleGroup(1)">
+    <div class="adults">
+      <div class="circle female" style="width:200px;height:200px;"></div>
+      <div class="circle male"   style="width:220px;height:220px;"></div>
+    </div>
+    <div class="children">
       <div class="circle incoming" style="width:120px;height:120px;"></div>
     </div>
+    <div class="group-info">
+      <h3>Family One</h3>
+      <p>Partner · Partner · incoming</p>
+    </div>
+  </div>
 
-    <!-- Group 2 top-right: female + male -->
-    <div class="group group2">
+  <!-- Family 2: female + male -->
+  <div class="group group2" id="g2" onclick="toggleGroup(2)">
+    <div class="adults">
       <div class="circle female" style="width:200px;height:200px;"></div>
       <div class="circle male"   style="width:220px;height:220px;"></div>
     </div>
+    <div class="group-info">
+      <h3>Family Two</h3>
+      <p>Partner · Partner</p>
+    </div>
+  </div>
 
-    <!-- Group 3 bottom-left: female + male + boy + girl -->
-    <div class="group group3">
+  <!-- Family 3: female + male + boy + girl -->
+  <div class="group group3" id="g3" onclick="toggleGroup(3)">
+    <div class="adults">
       <div class="circle female" style="width:200px;height:200px;"></div>
       <div class="circle male"   style="width:220px;height:220px;"></div>
-      <div class="circle male"   style="width:120px;height:120px;"></div>
-      <div class="circle female" style="width:110px;height:110px;"></div>
     </div>
+    <div class="children">
+      <div class="circle child-male"   style="width:120px;height:120px;"></div>
+      <div class="circle child-female" style="width:110px;height:110px;"></div>
+    </div>
+    <div class="group-info">
+      <h3>Family Three</h3>
+      <p>Partner · Partner · Son · Daughter</p>
+    </div>
+  </div>
 
-    <!-- Group 4 bottom-right: female + male + 2 boys + girl -->
-    <div class="group group4">
+  <!-- Family 4: female + male + 2 boys + girl -->
+  <div class="group group4" id="g4" onclick="toggleGroup(4)">
+    <div class="adults">
       <div class="circle female" style="width:200px;height:200px;"></div>
       <div class="circle male"   style="width:220px;height:220px;"></div>
-      <div class="circle male"   style="width:120px;height:120px;"></div>
-      <div class="circle male"   style="width:120px;height:120px;"></div>
-      <div class="circle female" style="width:110px;height:110px;"></div>
     </div>
+    <div class="children">
+      <div class="circle child-male"   style="width:120px;height:120px;"></div>
+      <div class="circle child-male"   style="width:120px;height:120px;"></div>
+      <div class="circle child-female" style="width:110px;height:110px;"></div>
+    </div>
+    <div class="group-info">
+      <h3>Family Four</h3>
+      <p>Partner · Partner · Son · Son · Daughter</p>
+    </div>
+  </div>
 
   <div class="container">
     <div class="logo" id="logo">Esengin</div>
@@ -165,6 +282,31 @@
   </div>
 
   <script>
+    let active = null;
+
+    function toggleGroup(id) {
+      const el = document.getElementById('g' + id);
+      const overlay = document.getElementById('overlay');
+      if (active === id) {
+        el.classList.remove('expanded');
+        overlay.classList.remove('active');
+        active = null;
+      } else {
+        if (active) document.getElementById('g' + active).classList.remove('expanded');
+        el.classList.add('expanded');
+        overlay.classList.add('active');
+        active = id;
+      }
+    }
+
+    function collapseAll() {
+      if (active) {
+        document.getElementById('g' + active).classList.remove('expanded');
+        document.getElementById('overlay').classList.remove('active');
+        active = null;
+      }
+    }
+
     function updateTime() {
       const now = new Date();
       const date = now.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
