@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Esengin Padel</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Satisfy&family=Raleway:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  height: 100%;
+  background: #f7f5f0;
+  font-family: 'Raleway', sans-serif;
+  color: #4a4a44;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.screen {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 22px;
+  padding: 20px;
+}
+.hidden { display: none !important; }
+.title { font-family: 'Satisfy', cursive; font-size: clamp(40px, 8vw, 72px); color: #1e3a5f; }
+.subtitle { font-weight: 300; letter-spacing: 3px; text-transform: uppercase; font-size: 13px; color: #8a8a84; }
+.heroes {
+  display: flex; flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px;
+  max-width: 900px;
+}
+.hero-card {
+  width: 180px;
+  padding: 22px 14px 18px;
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: 18px;
+  box-shadow: 0 4px 18px rgba(30,58,95,0.07);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  cursor: pointer;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.hero-card:hover { transform: translateY(-5px); box-shadow: 0 10px 26px rgba(30,58,95,0.13); }
+.hero-card.selected { border-color: #1e3a5f; transform: translateY(-5px); }
+.hero-avatar {
+  width: 86px; height: 86px;
+  border-radius: 50%;
+  position: relative;
+}
+.hero-avatar::before, .hero-avatar::after {
+  content: ""; position: absolute; top: 36px;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: rgba(255,255,255,0.92);
+}
+.hero-avatar::before { left: 24px; }
+.hero-avatar::after  { right: 24px; }
+.hero-avatar .band {
+  position: absolute; top: 16px; left: 12px; right: 12px;
+  height: 9px; border-radius: 5px;
+  background: rgba(255,255,255,0.55);
+}
+.hero-name { font-weight: 600; font-size: 16px; color: #1e3a5f; }
+.hero-tag { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #8a8a84; }
+.stats { width: 100%; display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+.stat { display: flex; align-items: center; gap: 8px; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: #8a8a84; }
+.stat span { width: 44px; text-align: right; }
+.bar { flex: 1; height: 6px; border-radius: 3px; background: #eceae4; overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: 3px; background: #1e3a5f; }
+.btn {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-size: 13px;
+  padding: 14px 38px;
+  border: none; border-radius: 30px;
+  background: #1e3a5f; color: #f7f5f0;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn:disabled { opacity: 0.35; cursor: default; transform: none; }
+.btn.ghost { background: transparent; color: #8a8a84; border: 1px solid #d8d5d0; }
+.diff { display: flex; gap: 10px; }
+.diff button {
+  font-family: 'Raleway', sans-serif;
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  padding: 9px 18px; border-radius: 20px;
+  border: 1px solid #d8d5d0; background: #fff; color: #8a8a84;
+  cursor: pointer; transition: all 0.2s ease;
+}
+.diff button.on { background: #1e3a5f; border-color: #1e3a5f; color: #f7f5f0; }
+#game-screen { gap: 0; padding: 0; justify-content: flex-start; }
+#hud {
+  width: 100%; max-width: 980px;
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+  padding: 14px 16px 8px;
+  font-weight: 600; font-size: 26px; color: #1e3a5f;
+}
+#hud .dot { width: 26px; height: 26px; border-radius: 50%; }
+#hud .vs { font-weight: 300; font-size: 13px; letter-spacing: 2px; color: #8a8a84; }
+#msg {
+  height: 22px; font-size: 13px; letter-spacing: 3px; text-transform: uppercase; color: #8a8a84;
+  text-align: center;
+}
+#court-wrap { width: 100%; max-width: 980px; padding: 6px 12px; }
+canvas { display: block; width: 100%; border-radius: 16px; }
+#touch {
+  position: fixed; bottom: 14px; left: 0; right: 0;
+  display: none; justify-content: space-between;
+  padding: 0 22px;
+}
+#touch.show { display: flex; }
+#touch .pad { display: flex; gap: 14px; }
+#touch button {
+  width: 64px; height: 64px; border-radius: 50%;
+  border: 1px solid #d8d5d0; background: rgba(255,255,255,0.85);
+  font-size: 24px; color: #1e3a5f;
+  cursor: pointer; user-select: none; -webkit-user-select: none;
+}
+#touch button:active { background: #1e3a5f; color: #fff; }
+.home-link {
+  position: fixed; top: 16px; left: 20px; z-index: 5;
+  font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+  color: #8a8a84; text-decoration: none;
+}
+.home-link:hover { color: #1e3a5f; }
+.controls-hint { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #b0ada8; text-align: center; line-height: 1.9; }
+#end-title { font-family: 'Satisfy', cursive; font-size: 54px; color: #1e3a5f; }
+#end-sub { font-size: 14px; letter-spacing: 3px; text-transform: uppercase; color: #8a8a84; }
+.row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+</style>
+</head>
+<body>
+
+<a class="home-link" href="index.html">&larr; esengin.nl</a>
+
+<!-- HERO SELECT -->
+<div class="screen" id="select-screen">
+  <div>
+    <div class="title" style="text-align:center;">Padel</div>
+    <div class="subtitle" style="text-align:center;">choose your hero</div>
+  </div>
+  <div class="heroes" id="heroes"></div>
+  <div class="diff" id="diff">
+    <button data-d="0">Relaxed</button>
+    <button data-d="1" class="on">Club night</button>
+    <button data-d="2">Tournament</button>
+  </div>
+  <button class="btn" id="play-btn" disabled>Play</button>
+  <div class="controls-hint">&larr; &rarr; move &nbsp;&middot;&nbsp; &uarr; jump &nbsp;&middot;&nbsp; hit in the air for a smash<br>glass walls are in play — just like real padel</div>
+</div>
+
+<!-- GAME -->
+<div class="screen hidden" id="game-screen">
+  <div id="hud">
+    <div class="dot" id="p-dot"></div>
+    <span id="p-score">0</span>
+    <span class="vs">first to 7</span>
+    <span id="a-score">0</span>
+    <div class="dot" id="a-dot"></div>
+  </div>
+  <div id="msg"></div>
+  <div id="court-wrap"><canvas id="court"></canvas></div>
+  <div id="touch">
+    <div class="pad">
+      <button id="t-left">&larr;</button>
+      <button id="t-right">&rarr;</button>
+    </div>
+    <div class="pad">
+      <button id="t-jump">&uarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- END -->
+<div class="screen hidden" id="end-screen">
+  <div id="end-title">You win!</div>
+  <div id="end-sub">7 – 3</div>
+  <div class="row">
+    <button class="btn" id="rematch-btn">Rematch</button>
+    <button class="btn ghost" id="change-btn">Change hero</button>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+
+/* ---------- Heroes ---------- */
+const HEROES = [
+  { name: "The Captain",  tag: "all-rounder",  color: "#1e3a5f", speed: 3, power: 3, reach: 3, jump: 3 },
+  { name: "The Smasher",  tag: "pure power",   color: "#d4938a", speed: 2, power: 5, reach: 2, jump: 3 },
+  { name: "The Sprinter", tag: "fast feet",    color: "#6b9fd4", speed: 5, power: 2, reach: 2, jump: 4 },
+  { name: "The Wall",     tag: "long reach",   color: "#f0c4bc", speed: 2, power: 2, reach: 5, jump: 2 },
+];
+const statSpeed = h => 270 + h.speed * 48;
+const statPower = h => 430 + h.power * 60;
+const statReach = h => 52 + h.reach * 9;
+const statJump  = h => 540 + h.jump * 50;
+
+/* ---------- Hero select UI ---------- */
+const heroesEl = document.getElementById("heroes");
+const playBtn = document.getElementById("play-btn");
+let selectedHero = null;
+let difficulty = 1;
+
+HEROES.forEach((h, i) => {
+  const card = document.createElement("div");
+  card.className = "hero-card";
+  card.innerHTML = `
+    <div class="hero-avatar" style="background:${h.color}"><div class="band"></div></div>
+    <div class="hero-name">${h.name}</div>
+    <div class="hero-tag">${h.tag}</div>
+    <div class="stats">
+      ${[["speed","speed"],["power","power"],["reach","reach"],["jump","jump"]].map(([k,label]) =>
+        `<div class="stat"><span>${label}</span><div class="bar"><i style="width:${h[k]*20}%;background:${h.color}"></i></div></div>`
+      ).join("")}
+    </div>`;
+  card.addEventListener("click", () => {
+    selectedHero = i;
+    document.querySelectorAll(".hero-card").forEach(c => c.classList.remove("selected"));
+    card.classList.add("selected");
+    playBtn.disabled = false;
+  });
+  heroesEl.appendChild(card);
+});
+
+document.getElementById("diff").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  difficulty = +b.dataset.d;
+  document.querySelectorAll("#diff button").forEach(x => x.classList.toggle("on", x === b));
+});
+
+/* ---------- Screens ---------- */
+const screens = {
+  select: document.getElementById("select-screen"),
+  game: document.getElementById("game-screen"),
+  end: document.getElementById("end-screen"),
+};
+function show(name) {
+  Object.values(screens).forEach(s => s.classList.add("hidden"));
+  screens[name].classList.remove("hidden");
+}
+
+/* ---------- Canvas ---------- */
+const canvas = document.getElementById("court");
+const ctx = canvas.getContext("2d");
+const W = 1000, H = 540;
+const FLOOR = H - 44;
+const NET_H = 92;
+function resize() {
+  const wrap = document.getElementById("court-wrap");
+  const avail = Math.min(wrap.clientWidth - 24, 956);
+  const maxH = window.innerHeight - 170;
+  const scale = Math.min(avail / W, maxH / H);
+  canvas.style.width = (W * scale) + "px";
+  canvas.style.height = (H * scale) + "px";
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener("resize", resize);
+
+/* ---------- Sound ---------- */
+let audioCtx = null;
+function beep(freq, dur = 0.06, vol = 0.08) {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = "triangle"; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    o.connect(g).connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + dur);
+  } catch (e) { /* sound unsupported — fine */ }
+}
+
+/* ---------- Game state ---------- */
+const GRAV = 1500;
+const WIN_SCORE = 7;
+let player, ai, ball, state;
+
+function makeAthlete(hero, side) {
+  return {
+    hero, side,                       // side: -1 left (player), +1 right (ai)
+    x: side < 0 ? W * 0.25 : W * 0.75,
+    y: FLOOR, vx: 0, vy: 0,
+    r: 26,
+    onGround: true,
+    cooldown: 0,
+    swing: 0,
+  };
+}
+
+function newMatch() {
+  const pHero = HEROES[selectedHero];
+  const others = HEROES.filter((_, i) => i !== selectedHero);
+  const aHero = others[Math.floor(Math.random() * others.length)];
+  player = makeAthlete(pHero, -1);
+  ai = makeAthlete(aHero, 1);
+  state = { pScore: 0, aScore: 0, server: -1, phase: "serve", timer: 1.2, msg: "", rally: 0, over: false };
+  ball = { x: 0, y: 0, vx: 0, vy: 0, r: 10, lastBounceSide: 0, bounces: 0 };
+  document.getElementById("p-dot").style.background = pHero.color;
+  document.getElementById("a-dot").style.background = aHero.color;
+  updateHud();
+  setMsg(pHero.name + "  vs  " + aHero.name);
+  placeForServe();
+}
+
+function placeForServe() {
+  const sx = state.server < 0 ? W * 0.2 : W * 0.8;
+  ball.x = sx; ball.y = FLOOR - 240;
+  ball.vx = 0; ball.vy = 0;
+  ball.lastBounceSide = 0; ball.bounces = 0;
+  player.x = W * 0.25; player.y = FLOOR; player.vx = player.vy = 0; player.onGround = true;
+  ai.x = W * 0.75; ai.y = FLOOR; ai.vx = ai.vy = 0; ai.onGround = true;
+  state.phase = "serve"; state.timer = 1.1; state.rally = 0;
+}
+
+function serve() {
+  const dir = -state.server;          // serve toward the other side
+  ball.vx = dir * 360;
+  ball.vy = -420;
+  state.phase = "play";
+  beep(620);
+}
+
+function setMsg(t) { document.getElementById("msg").textContent = t; }
+function updateHud() {
+  document.getElementById("p-score").textContent = state.pScore;
+  document.getElementById("a-score").textContent = state.aScore;
+}
+
+function pointTo(side) {                // side: -1 player scored, +1 ai scored
+  if (side < 0) state.pScore++; else state.aScore++;
+  state.server = side;                  // winner serves
+  updateHud();
+  beep(side < 0 ? 880 : 240, 0.15, 0.1);
+  if (state.pScore >= WIN_SCORE || state.aScore >= WIN_SCORE) {
+    state.over = true;
+    endMatch();
+    return;
+  }
+  setMsg(side < 0 ? "point for you" : "point for " + ai.hero.name.toLowerCase());
+  placeForServe();
+}
+
+function endMatch() {
+  const won = state.pScore > state.aScore;
+  document.getElementById("end-title").textContent = won ? "You win!" : ai.hero.name + " wins";
+  document.getElementById("end-sub").textContent = state.pScore + " – " + state.aScore;
+  setTimeout(() => show("end"), 700);
+}
+
+/* ---------- Input ---------- */
+const keys = {};
+window.addEventListener("keydown", e => {
+  if (["ArrowLeft","ArrowRight","ArrowUp"," "].includes(e.key)) e.preventDefault();
+  keys[e.key.toLowerCase()] = true;
+});
+window.addEventListener("keyup", e => { keys[e.key.toLowerCase()] = false; });
+
+function bindTouch(id, key) {
+  const el = document.getElementById(id);
+  const on = e => { e.preventDefault(); keys[key] = true; };
+  const off = e => { e.preventDefault(); keys[key] = false; };
+  el.addEventListener("touchstart", on, { passive: false });
+  el.addEventListener("touchend", off);
+  el.addEventListener("touchcancel", off);
+  el.addEventListener("mousedown", on);
+  el.addEventListener("mouseup", off);
+  el.addEventListener("mouseleave", off);
+}
+bindTouch("t-left", "arrowleft");
+bindTouch("t-right", "arrowright");
+bindTouch("t-jump", "arrowup");
+if ("ontouchstart" in window) document.getElementById("touch").classList.add("show");
+
+/* ---------- Physics ---------- */
+function moveAthlete(a, left, right, jump, dt) {
+  const sp = statSpeed(a.hero);
+  a.vx = (right ? sp : 0) - (left ? sp : 0);
+  if (jump && a.onGround) { a.vy = -statJump(a.hero); a.onGround = false; beep(300, 0.04, 0.03); }
+  a.vy += GRAV * dt;
+  a.x += a.vx * dt;
+  a.y += a.vy * dt;
+  if (a.y >= FLOOR) { a.y = FLOOR; a.vy = 0; a.onGround = true; }
+  const min = a.side < 0 ? a.r + 8 : W / 2 + a.r + 6;
+  const max = a.side < 0 ? W / 2 - a.r - 6 : W - a.r - 8;
+  a.x = Math.max(min, Math.min(max, a.x));
+  a.cooldown = Math.max(0, a.cooldown - dt);
+  a.swing = Math.max(0, a.swing - dt);
+}
+
+function tryHit(a) {
+  if (a.cooldown > 0) return;
+  const cx = a.x, cy = a.y - a.r;          // chest height
+  const dx = ball.x - cx, dy = ball.y - cy;
+  const reach = statReach(a.hero) + ball.r;
+  if (dx * dx + dy * dy > reach * reach) return;
+
+  const dir = -a.side;                      // hit toward opponent
+  const pow = statPower(a.hero);
+  const airborne = !a.onGround;
+  const ballHigh = ball.y < FLOOR - NET_H - 30;
+  const rnd = Math.random();
+
+  if (airborne && ballHigh) {
+    // smash: flat and fast, angled down
+    ball.vx = dir * pow * 1.35;
+    ball.vy = 220 + rnd * 220;
+    beep(950, 0.09, 0.12);
+  } else {
+    ball.vx = dir * pow * (0.85 + rnd * 0.3);
+    ball.vy = -(330 + rnd * 200);
+    beep(740, 0.06, 0.09);
+  }
+  ball.lastBounceSide = 0; ball.bounces = 0;
+  a.cooldown = 0.45;
+  a.swing = 0.18;
+  state.rally++;
+}
+
+function updateBall(dt) {
+  ball.vy += GRAV * dt;
+  ball.x += ball.vx * dt;
+  ball.y += ball.vy * dt;
+
+  // glass walls — in play, padel style
+  if (ball.x < ball.r + 6)      { ball.x = ball.r + 6;      ball.vx = Math.abs(ball.vx) * 0.78; beep(420, 0.04, 0.05); }
+  if (ball.x > W - ball.r - 6)  { ball.x = W - ball.r - 6;  ball.vx = -Math.abs(ball.vx) * 0.78; beep(420, 0.04, 0.05); }
+  if (ball.y < ball.r + 6)      { ball.y = ball.r + 6;      ball.vy = Math.abs(ball.vy) * 0.8; }
+
+  // net
+  const netTop = FLOOR - NET_H;
+  if (ball.y > netTop && Math.abs(ball.x - W / 2) < ball.r + 4) {
+    ball.vx = -ball.vx * 0.45;
+    ball.x = ball.x < W / 2 ? W / 2 - ball.r - 5 : W / 2 + ball.r + 5;
+    beep(200, 0.05, 0.05);
+  }
+
+  // floor — double bounce on a side loses the point
+  if (ball.y > FLOOR - ball.r + 14) {
+    ball.y = FLOOR - ball.r + 14;
+    ball.vy = -Math.abs(ball.vy) * 0.72;
+    ball.vx *= 0.92;
+    const side = ball.x < W / 2 ? -1 : 1;
+    if (side === ball.lastBounceSide) ball.bounces++;
+    else { ball.lastBounceSide = side; ball.bounces = 1; }
+    beep(500, 0.03, 0.04);
+    if (ball.bounces >= 2 || Math.abs(ball.vy) < 60) {
+      pointTo(-side);                  // ball died on `side` → other side scores
+    }
+  }
+}
+
+/* ---------- AI ---------- */
+let aiPlan = { rally: -1, whiff: false, off: 0 };
+function updateAI(dt) {
+  const conf = [0.55, 0.78, 0.97][difficulty];      // reaction quality
+  const whiffBase = [0.42, 0.25, 0.10][difficulty]; // chance to blow a return
+  // commit to one decision per return — long rallies wear the AI down
+  if (aiPlan.rally !== state.rally) {
+    const p = Math.min(0.55, whiffBase + Math.max(0, state.rally - 8) * 0.04);
+    aiPlan = {
+      rally: state.rally,
+      whiff: Math.random() < p,
+      off: (Math.random() * 2 - 1) * (1 - conf) * 120,
+    };
+  }
+  const incoming = ball.vx > 0 || ball.x > W / 2;
+  let target = incoming ? ball.x + ball.vx * 0.12 + aiPlan.off : W * 0.74;
+  if (aiPlan.whiff && incoming) target = ball.x < W * 0.75 ? W - 70 : W / 2 + 70;
+  target = Math.max(W / 2 + 60, Math.min(W - 40, target));
+
+  const dead = 14;
+  const left = ai.x > target + dead;
+  const right = ai.x < target - dead;
+  const closeHigh = Math.abs(ball.x - ai.x) < 130 && ball.y < FLOOR - 130 && ball.vy > -100;
+  const jump = closeHigh && Math.random() < conf * 0.9;
+  moveAthlete(ai, left, right, jump, dt);
+  if (!aiPlan.whiff) tryHit(ai);
+}
+
+/* ---------- Drawing ---------- */
+function drawCourt() {
+  // sand court
+  ctx.fillStyle = "#eef1ea";
+  ctx.fillRect(0, 0, W, H);
+  const sky = ctx.createLinearGradient(0, 0, 0, FLOOR);
+  sky.addColorStop(0, "#f7f5f0");
+  sky.addColorStop(1, "#edeae2");
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, FLOOR);
+  ctx.fillStyle = "#9db8a2";
+  ctx.fillRect(0, FLOOR, W, H - FLOOR);
+  ctx.fillStyle = "rgba(255,255,255,0.65)";
+  ctx.fillRect(0, FLOOR, W, 3);
+  ctx.fillRect(W / 2 - 1, FLOOR, 2, H - FLOOR);
+
+  // glass walls
+  for (const x of [0, W - 14]) {
+    ctx.fillStyle = "rgba(107,159,212,0.13)";
+    ctx.fillRect(x, 0, 14, FLOOR);
+    ctx.strokeStyle = "rgba(107,159,212,0.45)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x + 1, 1, 12, FLOOR - 2);
+  }
+  // ceiling line
+  ctx.fillStyle = "rgba(107,159,212,0.10)";
+  ctx.fillRect(0, 0, W, 8);
+
+  // net
+  ctx.fillStyle = "#4a4a44";
+  ctx.fillRect(W / 2 - 3, FLOOR - NET_H, 6, NET_H);
+  ctx.strokeStyle = "rgba(74,74,68,0.35)";
+  ctx.lineWidth = 1;
+  for (let y = FLOOR - NET_H + 8; y < FLOOR; y += 10) {
+    ctx.beginPath(); ctx.moveTo(W / 2 - 10, y); ctx.lineTo(W / 2 + 10, y); ctx.stroke();
+  }
+}
+
+function drawAthlete(a) {
+  const { x, y, r } = a;
+  const cy = y - r;
+  // shadow
+  ctx.fillStyle = "rgba(0,0,0,0.10)";
+  ctx.beginPath(); ctx.ellipse(x, FLOOR + 6, r * 0.9, 6, 0, 0, Math.PI * 2); ctx.fill();
+  // body circle (family-circle style)
+  ctx.fillStyle = a.hero.color;
+  ctx.beginPath(); ctx.arc(x, cy, r, 0, Math.PI * 2); ctx.fill();
+  // headband
+  ctx.strokeStyle = "rgba(255,255,255,0.6)";
+  ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.arc(x, cy, r - 6, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
+  // eyes look toward the ball
+  const ang = Math.atan2(ball.y - cy, ball.x - x);
+  const ex = Math.cos(ang) * 3, ey = Math.sin(ang) * 2;
+  ctx.fillStyle = "rgba(255,255,255,0.95)";
+  ctx.beginPath(); ctx.arc(x - 9 + ex, cy - 2 + ey, 4.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x + 9 + ex, cy - 2 + ey, 4.5, 0, Math.PI * 2); ctx.fill();
+  // racket
+  const dir = -a.side;
+  const swingLift = a.swing > 0 ? -28 : 0;
+  const rx = x + dir * (r + 12), ry = cy + 6 + swingLift;
+  ctx.strokeStyle = "#4a4a44";
+  ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(x + dir * r * 0.6, cy + 10); ctx.lineTo(rx, ry); ctx.stroke();
+  ctx.fillStyle = "#fff";
+  ctx.strokeStyle = a.hero.color;
+  ctx.lineWidth = 3.5;
+  ctx.beginPath(); ctx.ellipse(rx + dir * 9, ry - 4, 11, 14, dir * 0.5, 0, Math.PI * 2);
+  ctx.fill(); ctx.stroke();
+  // reach hint while serving
+  if (state.phase === "serve" && a.side < 0) {
+    ctx.strokeStyle = "rgba(30,58,95,0.12)";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 6]);
+    ctx.beginPath(); ctx.arc(x, cy, statReach(a.hero), 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+}
+
+function drawBall() {
+  ctx.fillStyle = "rgba(0,0,0,0.08)";
+  const sh = Math.max(0.25, 1 - (FLOOR - ball.y) / 420);
+  ctx.beginPath(); ctx.ellipse(ball.x, FLOOR + 6, 8 * sh + 4, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#d9e021";
+  ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,0.85)";
+  ctx.lineWidth = 1.6;
+  ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r * 0.62, -0.6, 1.8); ctx.stroke();
+}
+
+/* ---------- Main loop ---------- */
+let last = 0, running = false;
+function loop(t) {
+  if (!running) return;
+  const dt = Math.min((t - last) / 1000, 0.033);
+  last = t;
+
+  if (!state.over) {
+    if (state.phase === "serve") {
+      state.timer -= dt;
+      if (state.timer <= 0) serve();
+    }
+    moveAthlete(player,
+      keys["arrowleft"] || keys["a"],
+      keys["arrowright"] || keys["d"],
+      keys["arrowup"] || keys["w"] || keys[" "],
+      dt);
+    updateAI(dt);
+    if (state.phase === "play") {
+      tryHit(player);
+      updateBall(dt);
+      if (state.rally === 4) setMsg("nice rally!");
+      else if (state.rally === 8) setMsg("what a rally!");
+    }
+  }
+
+  drawCourt();
+  drawAthlete(player);
+  drawAthlete(ai);
+  drawBall();
+  requestAnimationFrame(loop);
+}
+
+function startGame() {
+  show("game");
+  resize();
+  newMatch();
+  running = true;
+  last = performance.now();
+  requestAnimationFrame(loop);
+}
+
+playBtn.addEventListener("click", startGame);
+document.getElementById("rematch-btn").addEventListener("click", startGame);
+document.getElementById("change-btn").addEventListener("click", () => { running = false; show("select"); });
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Esengin Padel</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  height: 100%;
+  background: #6fc3ef;
+  font-family: 'Press Start 2P', monospace;
+  color: #1c2733;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  image-rendering: pixelated;
+}
+body {
+  background:
+    linear-gradient(180deg, #5db4e8 0%, #7ecdf4 55%, #a8e0fa 100%);
+}
+.screen {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 20px; padding: 16px;
+  overflow-y: auto;
+}
+.hidden { display: none !important; }
+.title {
+  font-size: clamp(28px, 6vw, 48px);
+  color: #ffd83d;
+  text-shadow: 3px 3px 0 #1c2733, 6px 6px 0 rgba(28,39,51,0.25);
+  letter-spacing: 2px;
+}
+.subtitle { font-size: 11px; color: #ffffff; text-shadow: 2px 2px 0 #1c2733; }
+.heroes { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; max-width: 880px; }
+.hero-card {
+  width: 168px;
+  padding: 14px 10px 12px;
+  background: #f7f5f0;
+  border: 3px solid #1c2733;
+  box-shadow: 4px 4px 0 #1c2733;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  cursor: pointer;
+  transition: transform 0.1s steps(2);
+}
+.hero-card:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 #1c2733; }
+.hero-card.selected { background: #ffd83d; }
+.hero-card canvas { width: 96px; height: 132px; image-rendering: pixelated; }
+.hero-name { font-size: 10px; color: #1c2733; text-align: center; }
+.hero-tag { font-size: 7px; color: #5e6a76; text-transform: uppercase; }
+.stats { width: 100%; display: flex; flex-direction: column; gap: 4px; margin-top: 2px; }
+.stat { display: flex; align-items: center; gap: 6px; font-size: 6px; color: #5e6a76; text-transform: uppercase; }
+.stat span { width: 38px; text-align: right; }
+.cells { display: flex; gap: 2px; flex: 1; }
+.cells i { width: 14px; height: 7px; background: #d8d5d0; border: 1px solid #1c2733; }
+.cells i.on { background: #e04438; }
+.btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  padding: 14px 28px;
+  border: 3px solid #1c2733;
+  background: #e04438; color: #fff;
+  text-shadow: 1px 1px 0 #1c2733;
+  box-shadow: 4px 4px 0 #1c2733;
+  cursor: pointer;
+}
+.btn:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 #1c2733; }
+.btn:disabled { opacity: 0.4; cursor: default; }
+.btn.alt { background: #f7f5f0; color: #1c2733; text-shadow: none; }
+.diff { display: flex; gap: 8px; }
+.diff button {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  padding: 9px 12px;
+  border: 3px solid #1c2733;
+  background: #f7f5f0; color: #5e6a76;
+  box-shadow: 3px 3px 0 #1c2733;
+  cursor: pointer;
+}
+.diff button.on { background: #2e6fd6; color: #fff; }
+.hint { font-size: 7px; color: #fff; text-shadow: 1px 1px 0 #1c2733; text-align: center; line-height: 2.2; }
+#game-screen { gap: 8px; justify-content: center; }
+#court-wrap { width: 100%; display: flex; justify-content: center; }
+canvas#court {
+  image-rendering: pixelated;
+  border: 3px solid #1c2733;
+  box-shadow: 6px 6px 0 rgba(28,39,51,0.35);
+  background: #7ecdf4;
+}
+#touch {
+  position: fixed; bottom: 12px; left: 0; right: 0;
+  display: none; justify-content: space-between;
+  padding: 0 18px; z-index: 10;
+}
+#touch.show { display: flex; }
+#touch .pad { display: flex; gap: 12px; }
+#touch button {
+  width: 62px; height: 62px;
+  font-family: 'Press Start 2P', monospace; font-size: 18px;
+  border: 3px solid #1c2733; background: rgba(247,245,240,0.92); color: #1c2733;
+  box-shadow: 3px 3px 0 #1c2733;
+  cursor: pointer; user-select: none; -webkit-user-select: none;
+}
+#touch button:active { background: #ffd83d; transform: translate(2px,2px); box-shadow: 1px 1px 0 #1c2733; }
+.home-link {
+  position: fixed; top: 12px; left: 14px; z-index: 5;
+  font-size: 8px; color: #fff; text-shadow: 1px 1px 0 #1c2733;
+  text-decoration: none;
+}
+.home-link:hover { color: #ffd83d; }
+.panel {
+  background: #f7f5f0;
+  border: 3px solid #1c2733;
+  box-shadow: 6px 6px 0 #1c2733;
+  padding: 28px 34px;
+  display: flex; flex-direction: column; align-items: center; gap: 18px;
+}
+#end-title { font-size: 22px; color: #e04438; text-align: center; line-height: 1.6; }
+#end-sub { font-size: 12px; color: #1c2733; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+</style>
+</head>
+<body>
+
+<a class="home-link" href="/">&larr; ESENGIN.NL</a>
+
+<!-- HERO SELECT -->
+<div class="screen" id="select-screen">
+  <div style="text-align:center;">
+    <div class="title">PADEL</div>
+    <div class="subtitle" style="margin-top:10px;">2 VS 2 &mdash; CHOOSE YOUR HERO</div>
+  </div>
+  <div class="heroes" id="heroes"></div>
+  <div class="diff" id="diff">
+    <button data-d="0">RELAXED</button>
+    <button data-d="1" class="on">CLUB NIGHT</button>
+    <button data-d="2">TOURNAMENT</button>
+  </div>
+  <button class="btn" id="play-btn" disabled>PLAY!</button>
+  <div class="hint">ARROWS MOVE &bull; UP = JUMP &bull; HIT MID-AIR FOR A SMASH<br>A TEAMMATE JOINS YOU &bull; GLASS WALLS ARE IN PLAY &bull; FIRST TO 7</div>
+</div>
+
+<!-- GAME -->
+<div class="screen hidden" id="game-screen">
+  <div id="court-wrap"><canvas id="court" width="480" height="270"></canvas></div>
+  <div id="touch">
+    <div class="pad">
+      <button id="t-left">&larr;</button>
+      <button id="t-right">&rarr;</button>
+    </div>
+    <div class="pad">
+      <button id="t-jump">&uarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- END -->
+<div class="screen hidden" id="end-screen">
+  <div class="panel">
+    <div id="end-title">WINNER!</div>
+    <div id="end-sub">7 - 3</div>
+    <div class="row">
+      <button class="btn" id="rematch-btn">REMATCH</button>
+      <button class="btn alt" id="change-btn">CHANGE HERO</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+
+/* =====================================================================
+   HEROES — add your own here!
+   Each hero is an object with:
+     name, tag      : shown on the select screen
+     speed/power/
+     reach/jump     : stats from 1 to 5
+     chip           : the hero's team colour (HUD)
+     palette        : map of letter -> colour
+     sprite         : 22 rows of 16 characters, "." = transparent,
+                      any other letter looks up the palette.
+   Copy a whole block, redraw the pixels, change the colours — done.
+   The game needs at least 4 heroes (you + teammate + 2 opponents).
+   ===================================================================== */
+const HEROES = [
+  {
+    name: "ELIF", tag: "the ace &middot; all-rounder",
+    speed: 3, power: 3, reach: 3, jump: 3,
+    chip: "#2e6fd6",
+    palette: { H:"#6b3a17", S:"#f2b78e", e:"#1a1a1a", m:"#c4503c",
+               B:"#2e6fd6", K:"#23364f", W:"#ffffff" },
+    sprite: [
+      "....HHHHHH......",
+      "...HHHHHHHH.....",
+      "..HHHHHHHHHH....",
+      "..HHSSSSSSHH....",
+      "..HSSSSSSSSH....",
+      "..HSeSSSSeSH....",
+      "..HSSSSSSSSH....",
+      "..HSSSmmSSSH....",
+      "..HHSSSSSSHH....",
+      "..HHHSSSSHHH....",
+      "..HH.BBBB.HH....",
+      "..HHBBBBBBHH....",
+      "..H.BBBBBB.H....",
+      "....BBBBBB......",
+      "...SBBBBBBS.....",
+      "....KKKKKK......",
+      "...KKKKKKKK.....",
+      "...KKKKKKKK.....",
+      "....SS..SS......",
+      "....SS..SS......",
+      "....WW..WW......",
+      "...WWW..WWW.....",
+    ],
+  },
+  {
+    name: "SELIM", tag: "the champ &middot; pure power",
+    speed: 2, power: 5, reach: 2, jump: 3,
+    chip: "#f2c233",
+    palette: { S:"#e8b48c", e:"#111111", D:"#3a2a1e", G:"#555a63",
+               W:"#ffffff", M:"#f2c233", P:"#2b2f36", B:"#1a1a1a" },
+    sprite: [
+      ".....SSSSSS.....",
+      "....SSSSSSSS....",
+      "....SSSSSSSS....",
+      "....SeSSSSeS....",
+      "....SSSSSSSS....",
+      "....DSSSSSSD....",
+      "....DDSSSSDD....",
+      ".....DDDDDD.....",
+      "......DDDD......",
+      "....GGGGGGGG....",
+      "...GGGWWWWGGG...",
+      "...GG.WMMW.GG...",
+      "...GG.WMMW.GG...",
+      "...SS.WWWW.SS...",
+      "....GGGGGGGG....",
+      "....GGGGGGGG....",
+      "....PPPPPPPP....",
+      "....PPP..PPP....",
+      "....PP....PP....",
+      "....PP....PP....",
+      "....BB....BB....",
+      "...BBB....BBB...",
+    ],
+  },
+  {
+    name: "EREN", tag: "curly &middot; all-rounder",
+    speed: 3, power: 3, reach: 3, jump: 3,
+    chip: "#8a8a84",
+    palette: { C:"#3a2a20", S:"#e8b48c", G:"#2b2b2b", g:"#cfd8dc", m:"#b5573f",
+               b:"#2f231c", T:"#b8b4ac", P:"#3c4048", W:"#ffffff" },
+    sprite: [
+      "...CCCCCCCC.....",
+      "..CCCCCCCCCC....",
+      ".CCCCCCCCCCCC...",
+      "..CCSSSSSSCC....",
+      "..CSSSSSSSSC....",
+      "..CGgGSSGgGC....",
+      "..CSSSSSSSSC....",
+      "..CSSSmmSSSC....",
+      "..CbbbbbbbbC....",
+      "...bbbbbbbb.....",
+      "....TTTTTT......",
+      "...TTTTTTTT.....",
+      "...TTTTTTTT.....",
+      "..STTTTTTTTS....",
+      "..S.TTTTTT.S....",
+      "....TTTTTT......",
+      "....PPPPPP......",
+      "....PPPPPP......",
+      "....PP..PP......",
+      "....PP..PP......",
+      "....WW..WW......",
+      "...WWW..WWW.....",
+    ],
+  },
+  {
+    name: "MURAT", tag: "the captain &middot; pure power",
+    speed: 2, power: 5, reach: 2, jump: 3,
+    chip: "#6a6f76",
+    palette: { S:"#e0a37e", H:"#2b2118", e:"#1a1a1a", P:"#e9e7e2",
+               p:"#6a6f76", K:"#2f3338", B:"#1a1a1a" },
+    sprite: [
+      ".....SSSS.......",
+      "....SSSSSS......",
+      "...HSSSSSSH.....",
+      "...HSeSSeSH.....",
+      "...HSSSSSSH.....",
+      "....SSSSSS......",
+      ".....SSSS.......",
+      "....PPPPPP......",
+      "...PPPPPPPP.....",
+      "...PPppppPP.....",
+      "...PPppppPP.....",
+      "..SPPPPPPPPS....",
+      "..S.PPPPPP.S....",
+      "....PPPPPP......",
+      "....PPPPPP......",
+      "....KKKKKK......",
+      "....KKKKKK......",
+      "....KK..KK......",
+      "....KK..KK......",
+      "....KK..KK......",
+      "....BB..BB......",
+      "...BBB..BBB.....",
+    ],
+  },
+  {
+    name: "YAVUZ", tag: "the tank &middot; long reach",
+    speed: 2, power: 2, reach: 5, jump: 2,
+    chip: "#1f2125",
+    palette: { S:"#e0a982", e:"#1a1a1a", D:"#2a211b", T:"#1f2125",
+               K:"#4a4e55", W:"#ffffff" },
+    sprite: [
+      ".....SSSS.......",
+      "....SSSSSS......",
+      "....SSSSSS......",
+      "....SeSSeS......",
+      "....SSSSSS......",
+      "....DSSSSD......",
+      "....DDSSDD......",
+      ".....DDDD.......",
+      "....TTTTTT......",
+      "...TTTTTTTT.....",
+      "...TTTTTTTT.....",
+      "..STTTTTTTTS....",
+      "..S.TTTTTT.S....",
+      "....TTTTTT......",
+      "....TTTTTT......",
+      "....KKKKKK......",
+      "....KKKKKK......",
+      "....KK..KK......",
+      "....KK..KK......",
+      "....KK..KK......",
+      "....WW..WW......",
+      "...WWW..WWW.....",
+    ],
+  },
+  {
+    name: "MIRAC", tag: "the rookie &middot; fast feet",
+    speed: 5, power: 2, reach: 2, jump: 4,
+    chip: "#cdbfa8",
+    palette: { H:"#241d16", S:"#f0c098", e:"#1a1a1a", m:"#c4503c",
+               J:"#1d2126", W:"#f5f3ee", T:"#cdbfa8", K:"#2b2e33", B:"#141414" },
+    sprite: [
+      "....HHHHHH......",
+      "...HHHHHHHH.....",
+      "...HHHHHHHH.....",
+      "....SSSSSS......",
+      "....SeSSeS......",
+      "....SSSSSS......",
+      ".....SmmS.......",
+      "...JJWWWWJJ.....",
+      "..JJWWTTWWJJ....",
+      "..JJWWTTWWJJ....",
+      "..JJWWTTWWJJ....",
+      "..SJWWTTWWJS....",
+      "..S.WWWWWW.S....",
+      "....WWWWWW......",
+      "....KKKKKK......",
+      "....KKKKKK......",
+      "....KK..KK......",
+      "....KK..KK......",
+      "....KK..KK......",
+      "....KK..KK......",
+      "....BB..BB......",
+      "...BBB..BBB.....",
+    ],
+  },
+];
+const statSpeed = h => 130 + h.speed * 22;
+const statPower = h => 190 + h.power * 26;
+const statReach = h => 18 + h.reach * 3;
+const statJump  = h => 265 + h.jump * 22;
+
+/* ---------- Sprite drawing ---------- */
+function drawSpriteTo(c, hero, x, y, flip, scale) {
+  // x,y = bottom-centre of the sprite
+  const spr = hero.sprite, pal = hero.palette;
+  const w = spr[0].length, h = spr.length;
+  const ox = Math.round(x - (w * scale) / 2);
+  const oy = Math.round(y - h * scale);
+  for (let r = 0; r < h; r++) {
+    const row = spr[r];
+    for (let col = 0; col < w; col++) {
+      const ch = row[flip ? w - 1 - col : col];
+      if (ch === ".") continue;
+      c.fillStyle = pal[ch];
+      c.fillRect(ox + col * scale, oy + r * scale, scale, scale);
+    }
+  }
+}
+
+/* ---------- Hero select UI ---------- */
+const heroesEl = document.getElementById("heroes");
+const playBtn = document.getElementById("play-btn");
+let selectedHero = null;
+let difficulty = 1;
+
+HEROES.forEach((h, i) => {
+  const card = document.createElement("div");
+  card.className = "hero-card";
+  const cv = document.createElement("canvas");
+  cv.width = 96; cv.height = 132;
+  const cc = cv.getContext("2d");
+  drawSpriteTo(cc, h, 48, 126, false, 5);
+  card.appendChild(cv);
+  const info = document.createElement("div");
+  info.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;";
+  info.innerHTML = `
+    <div class="hero-name">${h.name}</div>
+    <div class="hero-tag">${h.tag}</div>
+    <div class="stats">
+      ${["speed","power","reach","jump"].map(k =>
+        `<div class="stat"><span>${k}</span><div class="cells">${
+          [1,2,3,4,5].map(n => `<i class="${n <= h[k] ? "on" : ""}"></i>`).join("")
+        }</div></div>`).join("")}
+    </div>`;
+  card.appendChild(info);
+  card.addEventListener("click", () => {
+    selectedHero = i;
+    document.querySelectorAll(".hero-card").forEach(c => c.classList.remove("selected"));
+    card.classList.add("selected");
+    playBtn.disabled = false;
+  });
+  heroesEl.appendChild(card);
+});
+
+document.getElementById("diff").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  difficulty = +b.dataset.d;
+  document.querySelectorAll("#diff button").forEach(x => x.classList.toggle("on", x === b));
+});
+
+/* ---------- Screens ---------- */
+const screens = {
+  select: document.getElementById("select-screen"),
+  game: document.getElementById("game-screen"),
+  end: document.getElementById("end-screen"),
+};
+function show(name) {
+  Object.values(screens).forEach(s => s.classList.add("hidden"));
+  screens[name].classList.remove("hidden");
+}
+
+/* ---------- Canvas ---------- */
+const canvas = document.getElementById("court");
+const ctx = canvas.getContext("2d");
+const W = 480, H = 270;
+const FLOOR = 246, WALL = 6, NET_H = 44;
+ctx.imageSmoothingEnabled = false;
+function resize() {
+  const availW = Math.min(window.innerWidth - 24, 960);
+  const availH = window.innerHeight - ("ontouchstart" in window ? 110 : 40);
+  const s = Math.min(availW / W, availH / H);
+  canvas.style.width = Math.floor(W * s) + "px";
+  canvas.style.height = Math.floor(H * s) + "px";
+}
+window.addEventListener("resize", resize);
+
+/* ---------- Sound (square wave = 8-bit) ---------- */
+let audioCtx = null;
+function beep(freq, dur = 0.06, vol = 0.05) {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = "square"; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    o.connect(g).connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + dur);
+  } catch (e) { /* sound unsupported — fine */ }
+}
+
+/* ---------- Game state ---------- */
+const GRAV = 750;
+const WIN_SCORE = 7;
+let athletes = [], ball, state;
+let confetti = [];
+
+function makeAthlete(hero, team, homeX, human) {
+  return {
+    hero, team, homeX, human,
+    x: homeX, y: FLOOR, vx: 0, vy: 0,
+    r: 14,
+    onGround: true, cooldown: 0, swing: 0,
+  };
+}
+
+function newMatch() {
+  const pHero = HEROES[selectedHero];
+  const rest = HEROES.filter((_, i) => i !== selectedHero)
+                     .sort(() => Math.random() - 0.5);
+  athletes = [
+    makeAthlete(pHero,   -1, W * 0.18, true),   // you (back court)
+    makeAthlete(rest[0], -1, W / 2 - 52, false), // teammate (net)
+    makeAthlete(rest[1],  1, W / 2 + 52, false), // opponent (net)
+    makeAthlete(rest[2],  1, W * 0.82, false),  // opponent (back court)
+  ];
+  athletes[2].spdMul = athletes[3].spdMul = [0.92, 1, 1.1][difficulty];
+  state = {
+    pScore: 0, aScore: 0, server: -1,
+    phase: "serve", timer: 1.2,
+    msg: pHero.name + " + " + rest[0].name + "  VS  " + rest[1].name + " + " + rest[2].name,
+    msgTimer: 2.5,
+    rally: 0, over: false, winner: 0, t: 0,
+  };
+  ball = { x: 0, y: 0, vx: 0, vy: 0, r: 4, lastBounceSide: 0, bounces: 0 };
+  confetti = [];
+  placeForServe();
+}
+
+function placeForServe() {
+  ball.x = state.server < 0 ? W * 0.14 : W * 0.86;
+  ball.y = FLOOR - 120;
+  ball.vx = 0; ball.vy = 0;
+  ball.lastBounceSide = 0; ball.bounces = 0;
+  for (const a of athletes) {
+    a.x = a.homeX; a.y = FLOOR; a.vx = a.vy = 0;
+    a.onGround = true; a.cooldown = 0; a.swing = 0;
+  }
+  state.phase = "serve"; state.timer = 1.1; state.rally = 0;
+}
+
+function serveNow() {
+  ball.vx = -state.server * 240;
+  ball.vy = -200;
+  state.phase = "play";
+  beep(620);
+}
+
+function setMsg(t, dur = 1.6) { state.msg = t; state.msgTimer = dur; }
+
+function pointTo(side) {                 // -1 = your team scored
+  if (side < 0) state.pScore++; else state.aScore++;
+  state.server = side;
+  beep(side < 0 ? 880 : 240, 0.18, 0.07);
+  if (state.pScore >= WIN_SCORE || state.aScore >= WIN_SCORE) {
+    state.over = true;
+    state.winner = side;
+    spawnConfetti();
+    document.getElementById("end-title").textContent =
+      side < 0 ? "YOU WIN!" : "CPU WINS!";
+    document.getElementById("end-sub").textContent = state.pScore + " - " + state.aScore;
+    setTimeout(() => show("end"), 1800);
+    return;
+  }
+  setMsg(side < 0 ? "POINT FOR YOU!" : "POINT FOR CPU");
+  placeForServe();
+}
+
+function spawnConfetti() {
+  const colors = ["#e04438", "#ffd83d", "#2e6fd6", "#3f9b52", "#ffffff"];
+  for (let i = 0; i < 90; i++) {
+    confetti.push({
+      x: Math.random() * W,
+      y: -10 - Math.random() * 120,
+      vy: 40 + Math.random() * 70,
+      vx: (Math.random() - 0.5) * 30,
+      c: colors[i % colors.length],
+    });
+  }
+}
+
+/* ---------- Input ---------- */
+const keys = {};
+let lastInput = 0;
+window.addEventListener("keydown", e => {
+  if (["ArrowLeft","ArrowRight","ArrowUp"," "].includes(e.key)) e.preventDefault();
+  keys[e.key.toLowerCase()] = true;
+  lastInput = performance.now();
+});
+window.addEventListener("keyup", e => { keys[e.key.toLowerCase()] = false; });
+
+function bindTouch(id, key) {
+  const el = document.getElementById(id);
+  const on = e => { e.preventDefault(); keys[key] = true; lastInput = performance.now(); };
+  const off = e => { e.preventDefault(); keys[key] = false; };
+  el.addEventListener("touchstart", on, { passive: false });
+  el.addEventListener("touchend", off);
+  el.addEventListener("touchcancel", off);
+  el.addEventListener("mousedown", on);
+  el.addEventListener("mouseup", off);
+  el.addEventListener("mouseleave", off);
+}
+bindTouch("t-left", "arrowleft");
+bindTouch("t-right", "arrowright");
+bindTouch("t-jump", "arrowup");
+if ("ontouchstart" in window) document.getElementById("touch").classList.add("show");
+
+/* ---------- Physics ---------- */
+function moveAthlete(a, left, right, jump, dt) {
+  const sp = statSpeed(a.hero) * (a.spdMul || 1);
+  a.vx = (right ? sp : 0) - (left ? sp : 0);
+  if (jump && a.onGround) { a.vy = -statJump(a.hero); a.onGround = false; }
+  a.vy += GRAV * dt;
+  a.x += a.vx * dt;
+  a.y += a.vy * dt;
+  if (a.y >= FLOOR) { a.y = FLOOR; a.vy = 0; a.onGround = true; }
+  const min = a.team < 0 ? WALL + a.r : W / 2 + a.r + 2;
+  const max = a.team < 0 ? W / 2 - a.r - 2 : W - WALL - a.r;
+  a.x = Math.max(min, Math.min(max, a.x));
+  a.cooldown = Math.max(0, a.cooldown - dt);
+  a.swing = Math.max(0, a.swing - dt);
+}
+
+function pickAim(a, dir) {
+  // candidate landing spots on the opponent half: mid, net drop, deep
+  const spots = dir > 0
+    ? [W * 0.72, W * 0.58, W * 0.92]
+    : [W * 0.28, W * 0.42, W * 0.08];
+  if (a.human) return spots[Math.floor(Math.random() * spots.length)];
+  // AI picks the spot farthest from the defenders — when it's on form.
+  // Near-wall spots are discounted: the glass rebound feeds the back player.
+  const defs = athletes.filter(o => o.team !== a.team);
+  let best = spots[0], bestD = -Infinity;
+  for (const s of spots) {
+    const nearWall = s < W * 0.15 || s > W * 0.85;
+    const d = Math.min(...defs.map(o => Math.abs(o.x - s))) - (nearWall ? 30 : 0);
+    if (d > bestD) { bestD = d; best = s; }
+  }
+  const conf = a.team > 0 ? [0.60, 0.85, 0.99][difficulty] : 0.65;
+  return Math.random() < conf ? best : spots[Math.floor(Math.random() * spots.length)];
+}
+
+function tryHit(a) {
+  if (a.cooldown > 0) return false;
+  const cx = a.x, cy = a.y - 24;            // chest height
+  const dx = ball.x - cx, dy = ball.y - cy;
+  const reach = statReach(a.hero) + ball.r;
+  if (dx * dx + dy * dy > reach * reach) return false;
+
+  const dir = -a.team;
+  const pow = statPower(a.hero);
+  const airborne = !a.onGround;
+  const ballHigh = ball.y < FLOOR - NET_H - 16;
+  const nearNet = Math.abs(ball.x - W / 2) < 110;
+  const rnd = Math.random();
+
+  let vy, maxV;
+  if (airborne && ballHigh && nearNet) {
+    vy = 110 + rnd * 110;                   // smash: flat and angled down
+    maxV = pow * 1.8;
+    beep(950, 0.09, 0.08);
+  } else {
+    // enough lift that even a low contact clears the net
+    const clearV = Math.sqrt(2 * GRAV * Math.max(0, ball.y - (FLOOR - NET_H - 18))) + 25;
+    vy = -Math.max(200 + rnd * 110, clearV);
+    maxV = pow * 1.5;
+    beep(740, 0.06, 0.06);
+  }
+  // shape the shot so it lands at the chosen spot (power caps the pace)
+  const aimX = pickAim(a, dir);
+  const drop = (FLOOR - ball.r) - ball.y;
+  const t = (-vy + Math.sqrt(vy * vy + 2 * GRAV * Math.max(10, drop))) / GRAV;
+  const minV = Math.abs(W / 2 + dir * 30 - ball.x) / t;   // at least clear the net
+  let v = Math.abs(aimX - ball.x) / t;
+  v = Math.max(minV, Math.min(maxV, v));
+  if (!a.human && a.team > 0) v *= [0.92, 1.0, 1.12][difficulty];
+  ball.vx = dir * v;
+  ball.vy = vy;
+
+  ball.lastBounceSide = 0; ball.bounces = 0;
+  a.cooldown = 0.45;
+  a.swing = 0.18;
+  state.rally++;
+  return true;
+}
+
+function updateBall(dt) {
+  ball.vy += GRAV * dt;
+  ball.x += ball.vx * dt;
+  ball.y += ball.vy * dt;
+
+  // glass walls — in play, padel style
+  if (ball.x < WALL + ball.r)     { ball.x = WALL + ball.r;     ball.vx = Math.abs(ball.vx) * 0.78; beep(420, 0.04, 0.04); }
+  if (ball.x > W - WALL - ball.r) { ball.x = W - WALL - ball.r; ball.vx = -Math.abs(ball.vx) * 0.78; beep(420, 0.04, 0.04); }
+  if (ball.y < 4 + ball.r)        { ball.y = 4 + ball.r;        ball.vy = Math.abs(ball.vy) * 0.8; }
+
+  // net
+  const netTop = FLOOR - NET_H;
+  if (ball.y > netTop && Math.abs(ball.x - W / 2) < ball.r + 2) {
+    ball.vx = -ball.vx * 0.45;
+    ball.x = ball.x < W / 2 ? W / 2 - ball.r - 3 : W / 2 + ball.r + 3;
+    beep(200, 0.05, 0.04);
+  }
+
+  // floor — real padel: one bounce allowed, the second (anywhere, even
+  // after a glass rebound back over the net) loses the point for the
+  // side where the FIRST bounce landed
+  if (ball.y > FLOOR - ball.r) {
+    ball.y = FLOOR - ball.r;
+    ball.vy = -Math.abs(ball.vy) * 0.72;
+    ball.vx *= 0.92;
+    const side = ball.x < W / 2 ? -1 : 1;
+    ball.bounces++;
+    if (ball.bounces === 1) ball.lastBounceSide = side;
+    beep(500, 0.03, 0.03);
+    if (ball.bounces >= 2 || Math.abs(ball.vy) < 35) {
+      pointTo(-(ball.lastBounceSide || side));
+    }
+  }
+}
+
+/* ---------- AI ---------- */
+// Each return, every AI commits to one decision (chase / whiff / aim error);
+// long rallies wear them down so points always resolve.
+const plans = new Map();
+function planFor(a, whiffBase, conf) {
+  let p = plans.get(a);
+  if (!p || p.rally !== state.rally) {
+    const fatigue = [0.05, 0.035, 0.015][difficulty];
+    const wp = Math.min(0.55, whiffBase + Math.max(0, state.rally - 10) * fatigue);
+    p = {
+      rally: state.rally,
+      whiff: Math.random() < wp,
+      off: (Math.random() * 2 - 1) * (1 - conf) * 60,
+    };
+    plans.set(a, p);
+  }
+  return p;
+}
+
+// where the ball will meet the floor, with one wall reflection folded in
+function landingX() {
+  const dy = (FLOOR - ball.r) - ball.y;
+  const disc = ball.vy * ball.vy + 2 * GRAV * Math.max(0, dy);
+  const t = (ball.vy + Math.sqrt(disc)) / GRAV;
+  let lx = ball.x + ball.vx * t;
+  if (lx < WALL) lx = 2 * WALL - lx;
+  if (lx > W - WALL) lx = 2 * (W - WALL) - lx;
+  return lx;
+}
+
+function runAI(a, chasing, conf, whiffBase, lx, zoneMin) {
+  const plan = planFor(a, whiffBase, conf);
+  let target;
+  if (chasing && !plan.whiff) {
+    target = lx + plan.off;
+  } else if (chasing && plan.whiff) {
+    // blew the read — runs the wrong way
+    target = lx < a.x ? a.x + 50 : a.x - 50;
+  } else {
+    target = a.homeX;
+  }
+  const min = a.team < 0 ? (zoneMin || WALL + 20) : W / 2 + 24;
+  const max = a.team < 0 ? W / 2 - 24 : W - WALL - 20;
+  target = Math.max(min, Math.min(max, target));
+
+  const dead = 8;
+  const left = a.x > target + dead;
+  const right = a.x < target - dead;
+  const closeHigh = Math.abs(ball.x - a.x) < 64 && ball.y < FLOOR - 64 && ball.vy > -50;
+  const jump = chasing && !plan.whiff && closeHigh && Math.random() < conf * 0.9;
+  moveAthlete(a, left, right, jump, dt_);
+  // even off the chase, swing at a ball that comes through your reach
+  if (!plan.whiff) tryHit(a);
+}
+
+let dt_ = 0;
+let oppChaser = null, oppChaserRally = -1;
+function updateAIs(dt) {
+  dt_ = dt;
+  const conf = [0.60, 0.85, 0.99][difficulty];
+  const whiffBase = [0.34, 0.16, 0.04][difficulty];
+  const [you, mate, oppF, oppB] = athletes;
+  const lx = landingX();
+  const playing = state.phase === "play";
+
+  // teammate: only covers the net zone — the back court is yours.
+  // Deliberately fallible so your coverage decides close points.
+  const ballLeft = ball.vx < 0 || ball.x < W / 2;
+  const mateChase = playing && ballLeft && lx > W * 0.35;
+  runAI(mate, mateChase, 0.65, 0.40, lx, W * 0.33);
+
+  // opponents: the one nearer the landing spot chases — picked once per
+  // return so wall rebounds don't make them both hesitate mid-flight
+  const ballRight = ball.vx > 0 || ball.x > W / 2;
+  if (oppChaserRally !== state.rally) {
+    oppChaser = Math.abs(oppF.x - lx) <= Math.abs(oppB.x - lx) ? oppF : oppB;
+    oppChaserRally = state.rally;
+  }
+  runAI(oppF, playing && ballRight && oppChaser === oppF, conf, whiffBase, lx);
+  runAI(oppB, playing && ballRight && oppChaser === oppB, conf, whiffBase, lx);
+}
+
+/* ---------- Drawing ---------- */
+function px(x, y, w, h, c) { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), w, h); }
+
+function drawBackground() {
+  // sky
+  px(0, 0, W, H, "#7ecdf4");
+  px(0, 0, W, 60, "#5db4e8");
+  // sun
+  px(40, 20, 18, 18, "#ffd83d");
+  px(36, 24, 26, 10, "#ffd83d");
+  // clouds drift
+  const t = state ? state.t : 0;
+  for (const [bx, by, s] of [[80, 34, 1], [240, 18, 1.4], [390, 44, 0.8]]) {
+    const cx = (bx + t * 6 * s) % (W + 80) - 40;
+    px(cx, by, 34 * s, 8, "#ffffff");
+    px(cx + 6, by - 5, 20 * s, 6, "#ffffff");
+  }
+  // city skyline
+  ctx.fillStyle = "#a8cbe0";
+  for (const [bx, bw, bh] of [[10,30,46],[48,22,30],[150,34,52],[210,26,38],[300,30,44],[350,20,28],[420,36,50]]) {
+    ctx.fillRect(bx, 196 - bh, bw, bh);
+  }
+  // trees
+  for (const tx of [70, 130, 250, 330, 410]) {
+    px(tx + 5, 186, 4, 12, "#7a4a26");
+    px(tx, 174, 14, 14, "#3f9b52");
+    px(tx + 3, 168, 8, 8, "#52b366");
+  }
+  // ground behind court
+  px(0, 196, W, FLOOR - 196, "#8fbf6e");
+}
+
+function drawCourt() {
+  // court floor (front face below the play line)
+  px(0, FLOOR, W, H - FLOOR, "#2c5fa8");
+  px(0, FLOOR, W, 2, "#ffffff");
+  px(W / 2 - 1, FLOOR, 2, H - FLOOR, "#ffffff");
+  // service lines on the front face
+  px(W * 0.25 - 1, FLOOR + 8, 2, H - FLOOR - 8, "#dfe9f5");
+  px(W * 0.75 - 1, FLOOR + 8, 2, H - FLOOR - 8, "#dfe9f5");
+
+  // glass walls with frame posts
+  for (const side of [0, 1]) {
+    const x = side === 0 ? 0 : W - WALL;
+    ctx.fillStyle = "rgba(190,228,248,0.45)";
+    ctx.fillRect(x, 30, WALL, FLOOR - 30);
+    px(x, 30, WALL, 4, "#36465a");
+    for (let y = 70; y < FLOOR; y += 44) px(x, y, WALL, 3, "#36465a");
+  }
+  // fence mesh above the glass (top corners)
+  ctx.strokeStyle = "rgba(54,70,90,0.5)";
+  ctx.lineWidth = 1;
+  for (const side of [0, 1]) {
+    const x0 = side === 0 ? 0 : W - 60;
+    for (let i = 0; i <= 60; i += 10) {
+      ctx.beginPath(); ctx.moveTo(x0 + i, 30); ctx.lineTo(x0 + i - 14, 92); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x0 + i - 14, 30); ctx.lineTo(x0 + i, 92); ctx.stroke();
+    }
+  }
+
+  // net
+  const netTop = FLOOR - NET_H;
+  px(W / 2 - 2, netTop, 4, NET_H, "#2b3540");
+  px(W / 2 - 3, netTop, 6, 3, "#f5f5f5");
+  ctx.strokeStyle = "rgba(245,245,245,0.35)";
+  for (let y = netTop + 7; y < FLOOR; y += 6) {
+    ctx.beginPath(); ctx.moveTo(W / 2 - 2, y); ctx.lineTo(W / 2 + 2, y); ctx.stroke();
+  }
+}
+
+function drawRacket(a) {
+  const dir = -a.team;
+  const up = a.swing > 0;
+  const hx = a.x + dir * 14;
+  const hy = a.y - (up ? 40 : 22);
+  px(hx - dir, hy + 6, 2, 6, "#7a4a26");           // grip
+  px(hx - 3, hy - 6, 8, 12, "#36465a");            // head rim
+  px(hx - 1, hy - 4, 4, 8, "#b8c6d4");             // strings
+}
+
+function drawAthlete(a) {
+  px(a.x - 12, FLOOR - 2 + 4, 24, 3, "rgba(20,30,40,0.25)"); // shadow
+  drawSpriteTo(ctx, a.hero, a.x, a.y, a.team > 0, 2);
+  drawRacket(a);
+  if (a.human) {                                    // your marker
+    const bob = Math.floor(state.t * 4) % 2;
+    px(a.x - 4, a.y - 56 + bob, 8, 3, "#ffd83d");
+    px(a.x - 2, a.y - 53 + bob, 4, 3, "#ffd83d");
+  }
+}
+
+function drawBall() {
+  px(ball.x - 6, FLOOR + 1, 12, 2, "rgba(20,30,40,0.25)");
+  px(ball.x - 3, ball.y - 4, 6, 8, "#d9e021");
+  px(ball.x - 4, ball.y - 3, 8, 6, "#d9e021");
+  px(ball.x - 1, ball.y - 2, 2, 4, "#f4fa6e");
+}
+
+function drawHUD() {
+  const [you, mate, oppF, oppB] = athletes;
+  // scoreboard panel
+  px(W / 2 - 74, 6, 148, 24, "#1c2733");
+  px(W / 2 - 72, 8, 144, 20, "#f7f5f0");
+  ctx.font = '10px "Press Start 2P", monospace';
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillStyle = "#1c2733";
+  ctx.fillText(state.pScore + " - " + state.aScore, W / 2, 19);
+  ctx.font = '7px "Press Start 2P", monospace';
+  ctx.textAlign = "right"; ctx.fillText("YOU", W / 2 - 26, 19);
+  ctx.textAlign = "left";  ctx.fillText("CPU", W / 2 + 26, 19);
+  // team chips
+  px(W / 2 - 68, 13, 8, 4, you.hero.chip);  px(W / 2 - 68, 19, 8, 4, mate.hero.chip);
+  px(W / 2 + 60, 13, 8, 4, oppF.hero.chip); px(W / 2 + 60, 19, 8, 4, oppB.hero.chip);
+
+  // message
+  if (state.msgTimer > 0 && state.msg) {
+    ctx.font = '8px "Press Start 2P", monospace';
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#1c2733";
+    ctx.fillText(state.msg, W / 2 + 1, 42 + 1);
+    ctx.fillStyle = "#ffd83d";
+    ctx.fillText(state.msg, W / 2, 42);
+  }
+  if (state.over) {
+    ctx.font = '16px "Press Start 2P", monospace';
+    ctx.textAlign = "center";
+    const txt = state.winner < 0 ? "YOU WIN!" : "CPU WINS!";
+    ctx.fillStyle = "#1c2733";
+    ctx.fillText(txt, W / 2 + 2, 110 + 2);
+    ctx.fillStyle = state.winner < 0 ? "#ffd83d" : "#e04438";
+    ctx.fillText(txt, W / 2, 110);
+  }
+}
+
+function drawConfetti(dt) {
+  for (const c of confetti) {
+    c.y += c.vy * dt; c.x += c.vx * dt;
+    px(c.x, c.y, 3, 3, c.c);
+  }
+}
+
+/* ---------- Main loop ---------- */
+let last = 0, running = false, rafId = 0;
+function loop(t) {
+  if (!running) return;
+  const dt = Math.min((t - last) / 1000, 0.033);
+  last = t;
+  state.t += dt;
+  state.msgTimer -= dt;
+
+  if (!state.over) {
+    if (state.phase === "serve") {
+      state.timer -= dt;
+      if (state.timer <= 0) serveNow();
+    }
+    const you = athletes[0];
+    moveAthlete(you,
+      keys["arrowleft"] || keys["a"],
+      keys["arrowright"] || keys["d"],
+      keys["arrowup"] || keys["w"] || keys[" "],
+      dt);
+    updateAIs(dt);
+    if (state.phase === "play") {
+      // your hero swings automatically — but only while you're playing,
+      // so an unattended keyboard can't farm points
+      if (t - lastInput < 4000) tryHit(you);
+      updateBall(dt);
+      if (state.rally === 6) setMsg("NICE RALLY!");
+      else if (state.rally === 12) setMsg("WHAT A RALLY!");
+    }
+  }
+
+  drawBackground();
+  drawCourt();
+  // back-court players first so net players overlap them
+  drawAthlete(athletes[0]); drawAthlete(athletes[3]);
+  drawAthlete(athletes[1]); drawAthlete(athletes[2]);
+  if (!state.over || state.phase === "play") drawBall();
+  drawHUD();
+  if (state.over) drawConfetti(dt);
+  rafId = requestAnimationFrame(loop);
+}
+
+function startGame() {
+  show("game");
+  resize();
+  newMatch();
+  cancelAnimationFrame(rafId);   // a rematch must not stack a second loop
+  running = true;
+  last = performance.now();
+  if (document.fonts && document.fonts.load) document.fonts.load('8px "Press Start 2P"');
+  rafId = requestAnimationFrame(loop);
+}
+
+playBtn.addEventListener("click", startGame);
+document.getElementById("rematch-btn").addEventListener("click", startGame);
+document.getElementById("change-btn").addEventListener("click", () => { running = false; show("select"); });
+
+// read-only debug handle (used by automated tests)
+window.__padel = {
+  get ball() { return ball; },
+  get athletes() { return athletes; },
+  get state() { return state; },
+};
+
+})();
+</script>
+</body>
+</html>
