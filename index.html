@@ -182,6 +182,11 @@ body {
   letter-spacing: 0.12em; color: #bbb;
   opacity: 0;
   animation: fadeIn 0.6s ease forwards 1.4s;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+.datetime.on-circle {
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
 }
 .confetti-piece {
   position: fixed; border-radius: 2px;
@@ -417,6 +422,24 @@ function updateTime() {
 }
 updateTime();
 setInterval(updateTime, 1000);
+const datetimeEl = document.getElementById('datetime');
+const bgCircles = document.querySelectorAll('.group .circle:not(.incoming), .group .photo-circle');
+function updateSubtitleContrast() {
+  const r = datetimeEl.getBoundingClientRect();
+  let onCircle = false;
+  for (const c of bgCircles) {
+    const cr = c.getBoundingClientRect();
+    const cx = cr.left + cr.width / 2;
+    const cy = cr.top + cr.height / 2;
+    const nearestX = Math.max(r.left, Math.min(cx, r.right));
+    const nearestY = Math.max(r.top, Math.min(cy, r.bottom));
+    const dx = cx - nearestX, dy = cy - nearestY;
+    if (dx * dx + dy * dy < (cr.width / 2) * (cr.width / 2)) { onCircle = true; break; }
+  }
+  datetimeEl.classList.toggle('on-circle', onCircle);
+}
+updateSubtitleContrast();
+setInterval(updateSubtitleContrast, 250);
 const logo = document.getElementById('logo');
 let taps = 0, tapTimer;
 logo.addEventListener('click', () => {
