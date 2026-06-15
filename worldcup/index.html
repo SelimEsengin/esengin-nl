@@ -132,6 +132,7 @@
   .chip-flag { height: 18px; border-radius: 3px; vertical-align: middle; }
   .chip-score { color: var(--text-2); font-weight: 500; font-size: 13px; margin: 0 2px; }
   .chip-meta { font-size: 11px; color: var(--text-3); margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+  .chip-time { font-size: 11px; font-weight: 600; color: var(--text-2); margin-top: 4px; }
   .chip-live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--live); display: inline-block; animation: pulse 1.5s infinite; }
 
   /* GROUPS */
@@ -487,6 +488,7 @@ function renderMatches() {
     return `<div class="match-chip${live?' live-chip':''}">
       <div class="chip-teams">${flag(away.team.logo,18)} ${esc(away.team.abbreviation)} ${score} ${esc(home.team.abbreviation)} ${flag(home.team.logo,18)}</div>
       <div class="chip-meta">${mark} ${esc(s.shortDetail)}${venue ? ` · ${esc(venue)}` : ''}</div>
+      <div class="chip-time">🕒 ${fmtDate(e.date)} (NL)</div>
     </div>`;
   }).join('');
 }
