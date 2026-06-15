@@ -370,7 +370,7 @@ async function fetchAll() {
     state.standings  = st;
     state.schedule   = sc;
     renderAll();
-    const now = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', timeZone:'Europe/Amsterdam'});
+    const now = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:false, timeZone:'Europe/Amsterdam'});
     document.getElementById('last-updated').textContent = `Updated ${now} (NL time)`;
     const hasLive = (sb.events||[]).some(e => e.status.type.state === 'in');
     if (hasLive) { dot.classList.add('live'); lbl.textContent = 'Live'; }
@@ -400,8 +400,8 @@ const esc = s => s == null ? '' : String(s).replace(/</g,'&lt;').replace(/>/g,'&
 const flag = (url, h=20) => url ? `<img src="${esc(url)}" style="height:${h}px;border-radius:3px;" onerror="this.style.display='none'">` : '';
 // All match times are shown in Netherlands time (Europe/Amsterdam), regardless of the viewer's location.
 const NL_TZ = 'Europe/Amsterdam';
-const fmtDate = iso => { try { return new Date(iso).toLocaleString([], {weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:NL_TZ}); } catch(e){ return iso; } };
-const fmtShort = iso => { try { return new Date(iso).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:NL_TZ}); } catch(e){ return iso; } };
+const fmtDate = iso => { try { return new Date(iso).toLocaleString([], {weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:NL_TZ}); } catch(e){ return iso; } };
+const fmtShort = iso => { try { return new Date(iso).toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:NL_TZ}); } catch(e){ return iso; } };
 
 function badgeHTML(status) {
   if (status.state === 'in') return `<span class="spotlight-badge badge-live"><span style="width:6px;height:6px;background:#fff;border-radius:50%;display:inline-block;animation:pulse 1.5s infinite"></span> LIVE · ${esc(status.shortDetail)}</span>`;
