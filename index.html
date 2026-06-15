@@ -89,9 +89,10 @@ body {
   object-fit: cover;
   object-position: top center;
   display: block;
-  transition: opacity 0.5s ease;
+  filter: grayscale(100%);
+  transition: filter 0.5s ease;
 }
-.group.expanded .photo-circle img { opacity: 0; }
+.group.expanded .photo-circle img { filter: grayscale(0%); }
 
 /* Corner positions */
 .group1 { top: -80px; left: -80px; animation: fg1 16s ease-in-out infinite; }
